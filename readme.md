@@ -14,8 +14,8 @@ For example, Mark Hamill is a 71 year old male, born on September 25<sup>th</sup
     ```
     {
       "id": 1
-      "firstName": "Mark",
-      "lastName: "Hamill",
+      "first_name": "Mark",
+      "last_name": "Hamill",
       "age": 71,
       "dob": "09/25/1951",
       "movies": [
@@ -29,8 +29,8 @@ For example, Mark Hamill is a 71 year old male, born on September 25<sup>th</sup
     },
     {
       "id": 2
-      "firstName": "Harrison",
-      "lastName": "Ford",
+      "first_name": "Harrison",
+      "last_name": "Ford",
       ...
     },
     ...
@@ -50,8 +50,8 @@ For example, Mark Hamill is a 71 year old male, born on September 25<sup>th</sup
     ```
     {
       "id": 1
-      "firstName": "Mark",
-      "lastName": "Hamill",
+      "first_name": "Mark",
+      "last_name": "Hamill",
       "age": 71,
       "dob": "09/25/1951",
       "movies": [
@@ -75,33 +75,33 @@ For example, Mark Hamill is a 71 year old male, born on September 25<sup>th</sup
 - <b>POST</b> /api/addActor
     - Description: Adds an actor to the list of actors
     - Request Body:
-    ```
-    {
-      "firstName": "Carrie",
-      "lastName": "Fisher",
-      "age": 60,
-      "dob": "10/21/1956",
-      "movies": [
-        "Star Wars IV",
-        "Star Wars V",
-        "Star Wars VI"
-      ]
-    }
-    ```
+        ```
+        {
+          "first_name": "Carrie",
+          "last_name": "Fisher",
+          "age": 60,
+          "dob": "10/21/1956",
+          "movies": [
+            "Star Wars IV",
+            "Star Wars V",
+            "Star Wars VI"
+          ]
+        }
+        ```
     - Response Body:
-    ```
-    {
-      "id": 3,
-      "firstName": "Carrie",
-      "lastName": "Fisher",
-      "age": 60,
-      "dob": "10/21/1956",
-      "movies": [
-        "Star Wars IV",
-        "Star Wars V",
-      ]
-    }
-    ```
+      ```
+      {
+        "id": 3,
+        "first_name": "Carrie",
+        "last_name": "Fisher",
+        "age": 60,
+        "dob": "10/21/1956",
+        "movies": [
+          "Star Wars IV",
+          "Star Wars V",
+        ]
+      }
+      ```
     - Expected Responses:
       - 200 OK - If the actor was successfully added
       - 400 BAD REQUEST - If the request body was formatted incorrectly or missing the required information
@@ -126,8 +126,8 @@ For example, Mark Hamill is a 71 year old male, born on September 25<sup>th</sup
     ```
     {
       "id": 3,
-      "firstName": "Carrie",
-      "lastName": "Fisher",
+      "first_name": "Carrie",
+      "last_name": "Fisher",
       "age": 60,
       "dob": "10/21/1956",
       "movies": [
@@ -148,11 +148,11 @@ For example, Mark Hamill is a 71 year old male, born on September 25<sup>th</sup
 - <b>DELETE</b> /api/deleteActor
   - Description: Deletes the specified actor
   - Request Body:
-  ```
-  {
-    "id": 3
-  }
-  ```
+    ```
+    {
+      "id": 3
+    }
+    ```
   - Expected Responses:
     - 200 OK - If the the actor was successfully deleted
     - 400 BAD REQUEST - If the request body was formatted incorrectly or missing the required information

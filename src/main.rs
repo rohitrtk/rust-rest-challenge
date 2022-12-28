@@ -20,13 +20,16 @@ async fn main() -> std::io::Result<()> {
         actorlist_entries: Mutex::new(vec![])
     });
 
+    let localhost: String = String::from("127.0.0.1");
+    let port: u16 = 8080;
+
     HttpServer::new(move || {
         App::new()
             .app_data(app_data.clone())
             .service(index)
             .configure(services::config)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((localhost, port))?
     .run()
     .await
 }

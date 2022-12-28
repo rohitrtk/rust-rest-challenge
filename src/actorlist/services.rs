@@ -4,95 +4,130 @@ use super::models::{AddActorEntry, UpdateActorEntry, ActorId};
 
 #[get("/api/getActors")]
 async fn get_actors(data: web::Data<AppState>) -> impl Responder {
-  HttpResponse::Ok().json(data.actorlist_entries.lock().unwrap().to_vec())
+  let actorlist_entries = data.actorlist_entries.lock();
+
+  // Return success on successful unwrap, internal server error on error
+  match actorlist_entries {
+    Result::Ok(actorlist) => HttpResponse::Ok().json(actorlist.to_vec()),
+    Result::Err(_) => HttpResponse::InternalServerError().json("")
+  }
 }
 
 #[get("/api/getActor")]
 async fn get_actor(data: web::Data<AppState>, req_body: web::Json<ActorId>) -> impl Responder {
-  let actorlist_entries = data.actorlist_entries.lock().unwrap();
-
+  let actorlist_entries = data.actorlist_entries.lock();
   let id = req_body.id;
 
-  for i in 0..actorlist_entries.len() {
-    if actorlist_entries[i].id == id {
-      return HttpResponse::Ok().json(actorlist_entries[i].clone());
-    }
-  }
+  // Return success if actor with the specified id is found, if they cannot be
+  // found, return a 404. On error, return internal server error.
+  match actorlist_entries {
+    Result::Ok(actorlist) => {
+      for i in 0..actorlist.len() {
+        if actorlist[i].id == id {
+          return HttpResponse::Ok().json(actorlist[i].clone());
+        }
+      }
 
-  HttpResponse::NotFound().json("")
+      HttpResponse::NotFound().json("Unable to find actor")
+    },
+    Result::Err(_) => HttpResponse::InternalServerError().json("")
+  }
 }
 
 #[post("/api/addActor")]
 async fn add_actor(data: web::Data<AppState>, entry: web::Json<AddActorEntry>) -> impl Responder {
-  // Get list of actors
-  let mut actorlist_entries = data.actorlist_entries.lock().unwrap();
+  let actorlist_entries = data.actorlist_entries.lock();
+  
+  // Return success if the actor has been added, internal server error on error
+  match actorlist_entries {
+    Result::Ok(mut actorlist) => {
+      // Get the current maximum id to determine what the next actor id should be
+      let mut max_id: i32 = 0;
+      for i in 0..actorlist.len() {
+        if actorlist[i].id > max_id { 
+          max_id = actorlist[i].id;
+        }
+      }
 
-  // Get the current maximum id to determine what the next actor id should be
-  let mut max_id: i32 = 0;
-  for i in 0..actorlist_entries.len() {
-    if actorlist_entries[i].id > max_id {
-      max_id = actorlist_entries[i].id;
-    }
+      actorlist.push(ActorListEntry {
+        id: max_id + 1,
+        first_name: entry.first_name.clone(),
+        last_name: entry.last_name.clone(),
+        age: entry.age,
+        dob: entry.dob.clone(),
+        movies: entry.movies.clone(),
+      });
+
+      HttpResponse::Ok().json(actorlist.to_vec())
+    },
+    Result::Err(_) => HttpResponse::InternalServerError().json("")
   }
-
-  actorlist_entries.push(ActorListEntry {
-    id: max_id + 1,
-    first_name: entry.first_name.clone(),
-    last_name: entry.last_name.clone(),
-    age: entry.age,
-    dob: entry.dob.clone(),
-    movies: entry.movies.clone(),
-  });
-
-  HttpResponse::Ok().json(actorlist_entries.to_vec())
 }
 
 #[put("/api/updateActor")]
 async fn update_actor(data: web::Data<AppState>, req_body: web::Json<UpdateActorEntry>) -> impl Responder {
+  let actorlist_entries = data.actorlist_entries.lock();
   let id = req_body.id;
-  let mut actorlist_entries = data.actorlist_entries.lock().unwrap();
 
-  for i in 0..actorlist_entries.len() {
-
-    let actorlist = &mut actorlist_entries[i];
-
-    if actorlist.id == id {
-      if req_body.first_name.is_some() {
-        actorlist.first_name = req_body.first_name.clone().unwrap();
-        println!("{}", req_body.first_name.clone().unwrap());
-      }
+  // Return success on successful update, if the actor with the given id doesn't exist,
+  // return a 404. Return internal server error on error.
+  match actorlist_entries {
+    Result::Ok(mut actorlist) => {
       
-      if req_body.last_name.is_some() {
-        actorlist.last_name = req_body.last_name.clone().unwrap();
-      }
-    
-      if req_body.age.is_some() {
-        actorlist.age = req_body.age.unwrap();
-      }
-    
-      if req_body.dob.is_some() {
-        actorlist.dob = req_body.dob.clone().unwrap();
-      }
-    
-      if req_body.movies.is_some() {
-        actorlist.movies = req_body.movies.clone().unwrap();
-      }
-    }
+      for i in 0..actorlist.len() {
+        if actorlist[i].id == id {
 
-    return HttpResponse::Ok().json(actorlist);
+          if req_body.first_name.is_some() {
+            actorlist[i].first_name = req_body.first_name.clone().unwrap();
+          }
+
+          if req_body.last_name.is_some() {
+            actorlist[i].last_name = req_body.last_name.clone().unwrap();
+          }
+
+          if req_body.age.is_some() {
+            actorlist[i].age = req_body.age.clone().unwrap();
+          }
+
+          if req_body.dob.is_some() {
+            actorlist[i].dob = req_body.dob.clone().unwrap();
+          }
+
+          if req_body.movies.is_some() {
+            actorlist[i].movies = req_body.movies.clone().unwrap();
+          }
+
+          return HttpResponse::Ok().json(actorlist.to_vec());
+        }
+      }
+
+      HttpResponse::NotFound().json("")
+
+    },
+    Result::Err(_) => HttpResponse::InternalServerError().json("")
   }
-
-  HttpResponse::NotFound().json("")
 } 
 
 #[delete("/api/deleteActor")]
 async fn delete_actor(data: web::Data<AppState>, req_body: web::Json<ActorId>) -> impl Responder {
-  let mut actorlist_entries = data.actorlist_entries.lock().unwrap();
-
+  let actorlist_entries = data.actorlist_entries.lock();
   let id = req_body.id;
-  *actorlist_entries = actorlist_entries.to_vec().into_iter().filter(|x| x.id != id).collect();
 
-  HttpResponse::Ok().json(actorlist_entries.to_vec())
+  // Return success upon successful delettion of actor with the given id, if the actor with
+  // the given id doesn't exist, return 404. Return internal server error on error.
+  match actorlist_entries {
+    Result::Ok(mut actorlist) => {
+      let old_length = actorlist.len();
+      *actorlist = actorlist.to_vec().into_iter().filter(|x| x.id != id).collect();
+
+      if old_length == (*actorlist).len() {
+        return HttpResponse::NotFound().json("");
+      }
+
+      HttpResponse::Ok().json(actorlist.to_vec())
+    },
+    Result::Err(_) => HttpResponse::InternalServerError().json("")
+  }
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
